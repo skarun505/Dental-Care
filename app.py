@@ -6,7 +6,14 @@ import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dental-care-secret-key-2026'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dental_care.db'
+
+# Configure Database - Use /tmp on Vercel/Linux to avoid "Read-only file system" error
+if os.name == 'posix':  # Linux (Vercel)
+    db_path = os.path.join('/tmp', 'dental_care.db')
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+else:  # Windows (Local)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dental_care.db'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
