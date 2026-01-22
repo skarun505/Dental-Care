@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Pharmacy Management - Dental Care System">
+    <title>Pharmacy - Dental Care Management System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <div class="dashboard-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">🦷</div>
+                <h2 class="sidebar-title">Dental Care</h2>
+                <p class="sidebar-subtitle">Management System</p>
+            </div>
+            <nav>
+                <ul class="sidebar-nav">
+                    <li class="nav-item"><a href="{{ url_for('dashboard') }}" class="nav-link"><span
+                                class="nav-icon">📊</span><span>Dashboard</span></a></li>
+                    <li class="nav-item"><a href="{{ url_for('patients') }}" class="nav-link"><span
+                                class="nav-icon">👥</span><span>Patients</span></a></li>
+                    <li class="nav-item"><a href="{{ url_for('doctors') }}" class="nav-link"><span
+                                class="nav-icon">👨‍⚕️</span><span>Doctors</span></a></li>
+                    <li class="nav-item"><a href="{{ url_for('employees') }}" class="nav-link"><span
+                                class="nav-icon">👔</span><span>Employees</span></a></li>
+                    <li class="nav-item"><a href="{{ url_for('pharmacy') }}" class="nav-link active"><span
+                                class="nav-icon">💊</span><span>Pharmacy</span></a></li>
+                    <li class="nav-item"><a href="{{ url_for('reports') }}" class="nav-link"><span
+                                class="nav-icon">📈</span><span>Reports</span></a></li>
+                </ul>
+                <div class="logout-section">
+                    <li class="nav-item"><a href="{{ url_for('logout') }}" class="nav-link"
+                            style="color: var(--error-color);"><span class="nav-icon">🚪</span><span>Logout</span></a>
+                    </li>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Pharmacy Management</h1>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">Manage medicine stock and inventory</p>
+                </div>
+                <button class="btn btn-primary" onclick="openAddModal()">➕ Add New Medicine</button>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">Medicine Inventory</h2>
+                    <span class="badge badge-primary">{{ medicines|length }} Items</span>
+                </div>
+                <div class="card-body">
+                    {% if medicines %}
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Medicine ID</th>
+                                    <th>Name</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Expiry Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for medicine in medicines %}
+                                <tr>
+                                    <td><strong>{{ medicine.medicine_id }}</strong></td>
+                                    <td>{{ medicine.name }}</td>
+                                    <td>
+                                        <span
+                                            class="badge {% if medicine.quantity < 10 %}badge-danger{% elif medicine.quantity < 50 %}badge-warning{% else %}badge-success{% endif %}">
+                                            {{ medicine.quantity }}
+                                        </span>
+                                    </td>
+                                    <td>₹{{ medicine.price }}</td>
+                                    <td>{{ medicine.expiry_date.strftime('%Y-%m-%d') if medicine.expiry_date else 'N/A'
+                                        }}</td>
+                                    <td>
+                                        {% if medicine.quantity < 10 %} <span class="badge badge-danger">Low
+                                            Stock</span>
+                                            {% elif medicine.quantity < 50 %} <span class="badge badge-warning">
+                                                Medium</span>
+                                                {% else %}
+                                                <span class="badge badge-success">In Stock</span>
+                                                {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="table-actions">
+                                            <button class="btn btn-sm btn-secondary"
+                                                onclick='editMedicine({{ medicine.id }}, "{{ medicine.medicine_id }}", "{{ medicine.name }}", {{ medicine.quantity }}, {{ medicine.price }}, "{{ medicine.expiry_date.strftime('
+                                                %Y-%m-%d') if medicine.expiry_date else '' }}")'>✏️ Edit</button>
+                                            <button class="btn btn-sm btn-danger"
+                                                onclick="deleteMedicine({{ medicine.id }})">🗑️ Delete</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">💊</div>
+                        <h3 class="empty-title">No Medicines Yet</h3>
+                        <p class="empty-text">Start by adding your first medicine to the inventory</p>
+                        <button class="btn btn-primary" onclick="openAddModal()">➕ Add First Medicine</button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="medicineModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Add New Medicine</h2>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="medicineForm">
+                    <input type="hidden" id="medicineId" value="">
+                    <div class="form-group">
+                        <label class="form-label">Medicine ID</label>
+                        <input type="text" id="medicine_id" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Medicine Name</label>
+                        <input type="text" id="name" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" id="quantity" class="form-input" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Price (₹)</label>
+                        <input type="number" id="price" class="form-input" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Expiry Date</label>
+                        <input type="date" id="expiry_date" class="form-input" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveMedicine()">Save Medicine</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/pharmacy.js') }}"></script>
+</body>
+
+</html>

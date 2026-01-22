@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Employee Management - Dental Care System">
+    <title>Employees - Dental Care Management System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <div class="dashboard-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">🦷</div>
+                <h2 class="sidebar-title">Dental Care</h2>
+                <p class="sidebar-subtitle">Management System</p>
+            </div>
+            <nav>
+                <ul class="sidebar-nav">
+                    <li class="nav-item"><a href="{{ url_for('dashboard') }}" class="nav-link"><span
+                                class="nav-icon">📊</span><span>Dashboard</span></a></li>
+                    <li class="nav-item"><a href="{{ url_for('patients') }}" class="nav-link"><span
+                                class="nav-icon">👥</span><span>Patients</span></a></li>
+                    <li class="nav-item"><a href="{{ url_for('doctors') }}" class="nav-link"><span
+                                class="nav-icon">👨‍⚕️</span><span>Doctors</span></a></li>
+                    <li class="nav-item"><a href="{{ url_for('employees') }}" class="nav-link active"><span
+                                class="nav-icon">👔</span><span>Employees</span></a></li>
+                    <li class="nav-item"><a href="{{ url_for('pharmacy') }}" class="nav-link"><span
+                                class="nav-icon">💊</span><span>Pharmacy</span></a></li>
+                    <li class="nav-item"><a href="{{ url_for('reports') }}" class="nav-link"><span
+                                class="nav-icon">📈</span><span>Reports</span></a></li>
+                </ul>
+                <div class="logout-section">
+                    <li class="nav-item"><a href="{{ url_for('logout') }}" class="nav-link"
+                            style="color: var(--error-color);"><span class="nav-icon">🚪</span><span>Logout</span></a>
+                    </li>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Employee Management</h1>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">Manage clinic staff and employees</p>
+                </div>
+                <button class="btn btn-primary" onclick="openAddModal()">➕ Add New Employee</button>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">All Employees</h2>
+                    <span class="badge badge-primary">{{ employees|length }} Total</span>
+                </div>
+                <div class="card-body">
+                    {% if employees %}
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Employee ID</th>
+                                    <th>Name</th>
+                                    <th>Role</th>
+                                    <th>Phone</th>
+                                    <th>Address</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for employee in employees %}
+                                <tr>
+                                    <td><strong>{{ employee.employee_id }}</strong></td>
+                                    <td>{{ employee.name }}</td>
+                                    <td><span class="badge badge-success">{{ employee.role }}</span></td>
+                                    <td>{{ employee.phone }}</td>
+                                    <td>{{ employee.address }}</td>
+                                    <td>
+                                        <div class="table-actions">
+                                            <button class="btn btn-sm btn-secondary"
+                                                onclick='editEmployee({{ employee.id }}, "{{ employee.employee_id }}", "{{ employee.name }}", "{{ employee.role }}", "{{ employee.phone }}", "{{ employee.address }}")'>✏️
+                                                Edit</button>
+                                            <button class="btn btn-sm btn-danger"
+                                                onclick="deleteEmployee({{ employee.id }})">🗑️ Delete</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">👔</div>
+                        <h3 class="empty-title">No Employees Yet</h3>
+                        <p class="empty-text">Start by adding your first employee to the system</p>
+                        <button class="btn btn-primary" onclick="openAddModal()">➕ Add First Employee</button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="employeeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Add New Employee</h2>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="employeeForm">
+                    <input type="hidden" id="employeeId" value="">
+                    <div class="form-group">
+                        <label class="form-label">Employee ID</label>
+                        <input type="text" id="employee_id" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Employee Name</label>
+                        <input type="text" id="name" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Role</label>
+                        <select id="role" class="form-input" required>
+                            <option value="">Select Role</option>
+                            <option value="Receptionist">Receptionist</option>
+                            <option value="Dental Assistant">Dental Assistant</option>
+                            <option value="Dental Hygienist">Dental Hygienist</option>
+                            <option value="Office Manager">Office Manager</option>
+                            <option value="Nurse">Nurse</option>
+                            <option value="Technician">Technician</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input type="tel" id="phone" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Address</label>
+                        <input type="text" id="address" class="form-input" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveEmployee()">Save Employee</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/employees.js') }}"></script>
+</body>
+
+</html>
