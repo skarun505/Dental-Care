@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Patient Management - Dental Care System">
     <title>Patients - Dental Care Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
@@ -14,7 +15,7 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="sidebar-logo">🦷</div>
+                <div class="sidebar-logo"><i class="fas fa-tooth"></i></div>
                 <h2 class="sidebar-title">Dental Care</h2>
                 <p class="sidebar-subtitle">Management System</p>
             </div>
@@ -23,38 +24,50 @@
                 <ul class="sidebar-nav">
                     <li class="nav-item">
                         <a href="{{ url_for('dashboard') }}" class="nav-link">
-                            <span class="nav-icon">📊</span>
+                            <span class="nav-icon"><i class="fas fa-chart-pie"></i></span>
                             <span>Dashboard</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url_for('patients') }}" class="nav-link active">
-                            <span class="nav-icon">👥</span>
+                            <span class="nav-icon"><i class="fas fa-users"></i></span>
                             <span>Patients</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url_for('doctors') }}" class="nav-link">
-                            <span class="nav-icon">👨‍⚕️</span>
+                            <span class="nav-icon"><i class="fas fa-user-md"></i></span>
                             <span>Doctors</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url_for('employees') }}" class="nav-link">
-                            <span class="nav-icon">👔</span>
+                            <span class="nav-icon"><i class="fas fa-user-tie"></i></span>
                             <span>Employees</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url_for('pharmacy') }}" class="nav-link">
-                            <span class="nav-icon">💊</span>
+                            <span class="nav-icon"><i class="fas fa-pills"></i></span>
                             <span>Pharmacy</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url_for('reports') }}" class="nav-link">
-                            <span class="nav-icon">📈</span>
+                            <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
                             <span>Reports</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('appointments') }}" class="nav-link">
+                            <span class="nav-icon"><i class="fas fa-calendar-check"></i></span>
+                            <span>Appointments</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('billing') }}" class="nav-link">
+                            <span class="nav-icon"><i class="fas fa-file-invoice-dollar"></i></span>
+                            <span>Billing</span>
                         </a>
                     </li>
                 </ul>
@@ -62,7 +75,7 @@
                 <div class="logout-section">
                     <li class="nav-item">
                         <a href="{{ url_for('logout') }}" class="nav-link" style="color: var(--error-color);">
-                            <span class="nav-icon">🚪</span>
+                            <span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span>
                             <span>Logout</span>
                         </a>
                     </li>
@@ -80,14 +93,16 @@
                     </p>
                 </div>
                 <button class="btn btn-primary" onclick="openAddModal()">
-                    ➕ Add New Patient
+                    <i class="fas fa-plus"></i> Add New Patient
                 </button>
             </div>
 
             <div class="content-card">
                 <div class="card-header">
                     <h2 class="card-title">All Patients</h2>
-                    <div style="display: flex; gap: 0.5rem;">
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <input type="text" id="patientSearch" class="form-input" placeholder="Search patients..."
+                            style="padding: 0.5rem; width: 250px;">
                         <span class="badge badge-primary">{{ patients|length }} Total</span>
                     </div>
                 </div>
@@ -124,11 +139,11 @@
                                         <div class="table-actions">
                                             <button class="btn btn-sm btn-secondary"
                                                 onclick='editPatient({{ patient.id }}, "{{ patient.patient_id }}", "{{ patient.name }}", "{{ patient.address }}", "{{ patient.gender }}", "{{ patient.phone }}", "{{ patient.blood_group }}", "{{ patient.patient_type }}")'>
-                                                ✏️ Edit
+                                                <i class="fas fa-edit"></i> Edit
                                             </button>
                                             <button class="btn btn-sm btn-danger"
                                                 onclick="deletePatient({{ patient.id }})">
-                                                🗑️ Delete
+                                                <i class="fas fa-trash"></i> Delete
                                             </button>
                                         </div>
                                     </td>
@@ -139,11 +154,12 @@
                     </div>
                     {% else %}
                     <div class="empty-state">
-                        <div class="empty-icon">👥</div>
+                        <div class="empty-icon"><i class="fas fa-users"
+                                style="font-size: 3rem; color: var(--text-secondary);"></i></div>
                         <h3 class="empty-title">No Patients Yet</h3>
                         <p class="empty-text">Start by adding your first patient to the system</p>
                         <button class="btn btn-primary" onclick="openAddModal()">
-                            ➕ Add First Patient
+                            <i class="fas fa-plus"></i> Add First Patient
                         </button>
                     </div>
                     {% endif %}
@@ -225,7 +241,13 @@
         </div>
     </div>
 
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script src="{{ url_for('static', filename='js/patients.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            setupSearch('patientSearch', 'data-table');
+        });
+    </script>
 </body>
 
 </html>

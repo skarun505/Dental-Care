@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Billing Management - Dental Care System">
+    <title>Billing - Dental Care Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <div class="dashboard-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo"><i class="fas fa-tooth"></i></div>
+                <h2 class="sidebar-title">Dental Care</h2>
+                <p class="sidebar-subtitle">Management System</p>
+            </div>
+
+            <nav>
+                <ul class="sidebar-nav">
+                    <li class="nav-item">
+                        <a href="{{ url_for('dashboard') }}" class="nav-link">
+                            <span class="nav-icon"><i class="fas fa-chart-pie"></i></span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('patients') }}" class="nav-link">
+                            <span class="nav-icon"><i class="fas fa-users"></i></span>
+                            <span>Patients</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('appointments') }}" class="nav-link">
+                            <span class="nav-icon"><i class="fas fa-calendar-check"></i></span>
+                            <span>Appointments</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('doctors') }}" class="nav-link">
+                            <span class="nav-icon"><i class="fas fa-user-md"></i></span>
+                            <span>Doctors</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('employees') }}" class="nav-link">
+                            <span class="nav-icon"><i class="fas fa-user-tie"></i></span>
+                            <span>Employees</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('pharmacy') }}" class="nav-link">
+                            <span class="nav-icon"><i class="fas fa-pills"></i></span>
+                            <span>Pharmacy</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('billing') }}" class="nav-link active">
+                            <span class="nav-icon"><i class="fas fa-file-invoice-dollar"></i></span>
+                            <span>Billing</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('reports') }}" class="nav-link">
+                            <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
+                            <span>Reports</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="logout-section">
+                    <li class="nav-item">
+                        <a href="{{ url_for('logout') }}" class="nav-link" style="color: var(--error-color);">
+                            <span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span>
+                            <span>Logout</span>
+                        </a>
+                    </li>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Billing & Invoices</h1>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                        Generate and track patient invoices
+                    </p>
+                </div>
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i> Create New Invoice
+                </button>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header">
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <input type="text" id="billSearch" class="form-input" placeholder="Search invoices..."
+                            style="padding: 0.5rem; width: 250px;">
+                        <span class="badge badge-primary">{{ bills|length }} Total</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if bills %}
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Patient</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for bill in bills %}
+                                <tr>
+                                    <td><strong>{{ bill.created_at.strftime('%Y-%m-%d') }}</strong></td>
+                                    <td>{{ bill.patient.name }}</td>
+                                    <td>{{ bill.description }}</td>
+                                    <td>${{ "%.2f"|format(bill.amount) }}</td>
+                                    <td>
+                                        <span
+                                            class="badge badge-{{ 'success' if bill.status == 'Paid' else 'warning' }}">
+                                            {{ bill.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="table-actions">
+                                            {% if bill.status == 'Pending' %}
+                                            <button class="btn btn-sm btn-success"
+                                                onclick="updateStatus({{ bill.id }}, 'Paid')">
+                                                ✅ Mark Paid
+                                            </button>
+                                            {% endif %}
+                                            <button class="btn btn-sm btn-secondary" onclick="printBill({{ bill.id }})">
+                                                <i class="fas fa-print"></i> Print
+                                            </button>
+                                            <button class="btn btn-sm btn-danger" onclick="deleteBill({{ bill.id }})">
+                                                🗑️ Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon"><i class="fas fa-file-invoice-dollar"
+                                style="font-size: 3rem; color: var(--text-secondary);"></i></div>
+                        <h3 class="empty-title">No Invoices Yet</h3>
+                        <p class="empty-text">Create your first invoice for a patient</p>
+                        <button class="btn btn-primary" onclick="openAddModal()">
+                            <i class="fas fa-plus"></i> Create First Invoice
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Modal -->
+    <div id="billModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Generate New Bill</h2>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="billForm">
+                    <div class="form-group">
+                        <label class="form-label">Patient</label>
+                        <select id="patient_id" class="form-input" required>
+                            <option value="">Select Patient</option>
+                            {% for patient in patients %}
+                            <option value="{{ patient.id }}">{{ patient.name }} ({{ patient.patient_id }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea id="description" class="form-input" rows="3" required
+                            placeholder="Consultation, Root Canal, etc."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Amount ($)</label>
+                        <input type="number" id="amount" class="form-input" step="0.01" min="0" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveBill()">Generate</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('billModal');
+
+        function openAddModal() {
+            document.getElementById('billForm').reset();
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+        }
+
+        function saveBill() {
+            const data = {
+                patient_id: document.getElementById('patient_id').value,
+                description: document.getElementById('description').value,
+                amount: parseFloat(document.getElementById('amount').value),
+            };
+
+            fetch('/billing/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                });
+        }
+
+        function updateStatus(id, status) {
+            if (!confirm(`Are you sure you want to mark this bill as ${status}?`)) return;
+
+            fetch(`/billing/update_status/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status: status })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                });
+        }
+
+        function deleteBill(id) {
+            if (!confirm('Are you sure you want to delete this bill?')) return;
+
+            fetch(`/billing/delete/${id}`, {
+                method: 'DELETE'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                });
+        }
+
+        function printBill(id) {
+            alert("Printing functionality is coming soon! For now, please use the browser's print feature (Ctrl+P).");
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setupSearch('billSearch', 'data-table');
+        });
+    </script>
+</body>
+
+</html>

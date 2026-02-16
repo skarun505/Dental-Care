@@ -74,3 +74,20 @@ function toggleSidebar() {
 function confirmDelete(itemName) {
     return confirm(`Are you sure you want to delete ${itemName}? This action cannot be undone.`);
 }
+
+// Table Search Functionality
+function setupSearch(inputId, tableClass) {
+    const searchInput = document.getElementById(inputId);
+    if (!searchInput) return;
+
+    searchInput.addEventListener('keyup', function () {
+        const value = this.value.toLowerCase();
+        const table = document.querySelector('.' + tableClass);
+        const rows = table.querySelectorAll('tbody tr');
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(value) ? '' : 'none';
+        });
+    });
+}

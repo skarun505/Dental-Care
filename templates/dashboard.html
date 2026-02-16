@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Dental Care Management System Dashboard">
     <title>Dashboard - Dental Care Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
@@ -14,7 +15,7 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="sidebar-logo">🦷</div>
+                <div class="sidebar-logo"><i class="fas fa-tooth"></i></div>
                 <h2 class="sidebar-title">Dental Care</h2>
                 <p class="sidebar-subtitle">Management System</p>
             </div>
@@ -23,38 +24,50 @@
                 <ul class="sidebar-nav">
                     <li class="nav-item">
                         <a href="{{ url_for('dashboard') }}" class="nav-link active">
-                            <span class="nav-icon">📊</span>
+                            <span class="nav-icon"><i class="fas fa-chart-pie"></i></span>
                             <span>Dashboard</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url_for('patients') }}" class="nav-link">
-                            <span class="nav-icon">👥</span>
+                            <span class="nav-icon"><i class="fas fa-users"></i></span>
                             <span>Patients</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url_for('doctors') }}" class="nav-link">
-                            <span class="nav-icon">👨‍⚕️</span>
+                            <span class="nav-icon"><i class="fas fa-user-md"></i></span>
                             <span>Doctors</span>
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="{{ url_for('appointments') }}" class="nav-link">
+                            <span class="nav-icon"><i class="fas fa-calendar-check"></i></span>
+                            <span>Appointments</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="{{ url_for('employees') }}" class="nav-link">
-                            <span class="nav-icon">👔</span>
+                            <span class="nav-icon"><i class="fas fa-user-tie"></i></span>
                             <span>Employees</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url_for('pharmacy') }}" class="nav-link">
-                            <span class="nav-icon">💊</span>
+                            <span class="nav-icon"><i class="fas fa-pills"></i></span>
                             <span>Pharmacy</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url_for('reports') }}" class="nav-link">
-                            <span class="nav-icon">📈</span>
+                            <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
                             <span>Reports</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('billing') }}" class="nav-link">
+                            <span class="nav-icon"><i class="fas fa-file-invoice-dollar"></i></span>
+                            <span>Billing</span>
                         </a>
                     </li>
                 </ul>
@@ -62,7 +75,7 @@
                 <div class="logout-section">
                     <li class="nav-item">
                         <a href="{{ url_for('logout') }}" class="nav-link" style="color: var(--error-color);">
-                            <span class="nav-icon">🚪</span>
+                            <span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span>
                             <span>Logout</span>
                         </a>
                     </li>
@@ -76,7 +89,8 @@
                 <div>
                     <h1 class="page-title">Dashboard</h1>
                     <p style="color: var(--text-secondary); margin-top: 0.5rem;">
-                        Welcome back, <strong>{{ session.username }}</strong>! 👋
+                        Welcome back, <strong>{{ session.username }}</strong>! <i class="fas fa-hand-sparkles"
+                            style="color: var(--primary-color);"></i>
                     </p>
                 </div>
             </div>
@@ -84,25 +98,25 @@
             <!-- Statistics Cards -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-icon">👥</div>
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
                     <div class="stat-label">Total Patients</div>
                     <div class="stat-value">{{ patient_count }}</div>
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon">👨‍⚕️</div>
+                    <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                    <div class="stat-label">Appointments</div>
+                    <div class="stat-value">{{ appointment_count }}</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-user-md"></i></div>
                     <div class="stat-label">Total Doctors</div>
                     <div class="stat-value">{{ doctor_count }}</div>
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon">👔</div>
-                    <div class="stat-label">Total Employees</div>
-                    <div class="stat-value">{{ employee_count }}</div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon">💊</div>
+                    <div class="stat-icon"><i class="fas fa-pills"></i></div>
                     <div class="stat-label">Medicines in Stock</div>
                     <div class="stat-value">{{ medicine_count }}</div>
                 </div>
@@ -115,17 +129,17 @@
                 </div>
                 <div class="card-body">
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <a href="{{ url_for('appointments') }}" class="btn btn-primary" style="text-decoration: none;">
+                            <i class="fas fa-calendar-plus"></i> Schedule Appointment
+                        </a>
                         <a href="{{ url_for('patients') }}" class="btn btn-primary" style="text-decoration: none;">
-                            👥 Manage Patients
+                            <i class="fas fa-user-plus"></i> Manage Patients
                         </a>
                         <a href="{{ url_for('doctors') }}" class="btn btn-primary" style="text-decoration: none;">
-                            👨‍⚕️ Manage Doctors
+                            <i class="fas fa-user-md"></i> Manage Doctors
                         </a>
-                        <a href="{{ url_for('pharmacy') }}" class="btn btn-primary" style="text-decoration: none;">
-                            💊 Manage Pharmacy
-                        </a>
-                        <a href="{{ url_for('reports') }}" class="btn btn-primary" style="text-decoration: none;">
-                            📈 View Reports
+                        <a href="{{ url_for('billing') }}" class="btn btn-primary" style="text-decoration: none;">
+                            <i class="fas fa-file-invoice-dollar"></i> Generate Bill
                         </a>
                     </div>
                 </div>

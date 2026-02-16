@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Employee Management - Dental Care System">
     <title>Employees - Dental Care Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
@@ -13,24 +14,36 @@
     <div class="dashboard-wrapper">
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="sidebar-logo">🦷</div>
+                <div class="sidebar-logo"><i class="fas fa-tooth"></i></div>
                 <h2 class="sidebar-title">Dental Care</h2>
                 <p class="sidebar-subtitle">Management System</p>
             </div>
             <nav>
                 <ul class="sidebar-nav">
-                    <li class="nav-item"><a href="{{ url_for('dashboard') }}" class="nav-link"><span
-                                class="nav-icon">📊</span><span>Dashboard</span></a></li>
-                    <li class="nav-item"><a href="{{ url_for('patients') }}" class="nav-link"><span
-                                class="nav-icon">👥</span><span>Patients</span></a></li>
-                    <li class="nav-item"><a href="{{ url_for('doctors') }}" class="nav-link"><span
-                                class="nav-icon">👨‍⚕️</span><span>Doctors</span></a></li>
+                    <li class="nav-item"><a href="{{ url_for('dashboard') }}" class="nav-link"><span class="nav-icon"><i
+                                    class="fas fa-chart-pie"></i></span><span>Dashboard</span></a></li>
+                    <li class="nav-item"><a href="{{ url_for('patients') }}" class="nav-link"><span class="nav-icon"><i
+                                    class="fas fa-users"></i></span><span>Patients</span></a></li>
+                    <li class="nav-item"><a href="{{ url_for('doctors') }}" class="nav-link"><span class="nav-icon"><i
+                                    class="fas fa-user-md"></i></span><span>Doctors</span></a></li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('appointments') }}" class="nav-link">
+                            <span class="nav-icon"><i class="fas fa-calendar-check"></i></span>
+                            <span>Appointments</span>
+                        </a>
+                    </li>
                     <li class="nav-item"><a href="{{ url_for('employees') }}" class="nav-link active"><span
-                                class="nav-icon">👔</span><span>Employees</span></a></li>
-                    <li class="nav-item"><a href="{{ url_for('pharmacy') }}" class="nav-link"><span
-                                class="nav-icon">💊</span><span>Pharmacy</span></a></li>
-                    <li class="nav-item"><a href="{{ url_for('reports') }}" class="nav-link"><span
-                                class="nav-icon">📈</span><span>Reports</span></a></li>
+                                class="nav-icon"><i class="fas fa-user-tie"></i></span><span>Employees</span></a></li>
+                    <li class="nav-item"><a href="{{ url_for('pharmacy') }}" class="nav-link"><span class="nav-icon"><i
+                                    class="fas fa-pills"></i></span><span>Pharmacy</span></a></li>
+                    <li class="nav-item"><a href="{{ url_for('reports') }}" class="nav-link"><span class="nav-icon"><i
+                                    class="fas fa-chart-line"></i></span><span>Reports</span></a></li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('billing') }}" class="nav-link">
+                            <span class="nav-icon"><i class="fas fa-file-invoice-dollar"></i></span>
+                            <span>Billing</span>
+                        </a>
+                    </li>
                 </ul>
                 <div class="logout-section">
                     <li class="nav-item"><a href="{{ url_for('logout') }}" class="nav-link"
@@ -46,13 +59,19 @@
                     <h1 class="page-title">Employee Management</h1>
                     <p style="color: var(--text-secondary); margin-top: 0.5rem;">Manage clinic staff and employees</p>
                 </div>
-                <button class="btn btn-primary" onclick="openAddModal()">➕ Add New Employee</button>
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i> Add New Employee
+                </button>
             </div>
 
             <div class="content-card">
                 <div class="card-header">
                     <h2 class="card-title">All Employees</h2>
-                    <span class="badge badge-primary">{{ employees|length }} Total</span>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <input type="text" id="employeeSearch" class="form-input" placeholder="Search employees..."
+                            style="padding: 0.5rem; width: 250px;">
+                        <span class="badge badge-primary">{{ employees|length }} Total</span>
+                    </div>
                 </div>
                 <div class="card-body">
                     {% if employees %}
@@ -79,10 +98,13 @@
                                     <td>
                                         <div class="table-actions">
                                             <button class="btn btn-sm btn-secondary"
-                                                onclick='editEmployee({{ employee.id }}, "{{ employee.employee_id }}", "{{ employee.name }}", "{{ employee.role }}", "{{ employee.phone }}", "{{ employee.address }}")'>✏️
-                                                Edit</button>
+                                                onclick='editEmployee({{ employee.id }}, "{{ employee.employee_id }}", "{{ employee.name }}", "{{ employee.role }}", "{{ employee.phone }}", "{{ employee.address }}")'>
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
                                             <button class="btn btn-sm btn-danger"
-                                                onclick="deleteEmployee({{ employee.id }})">🗑️ Delete</button>
+                                                onclick="deleteEmployee({{ employee.id }})">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -92,10 +114,13 @@
                     </div>
                     {% else %}
                     <div class="empty-state">
-                        <div class="empty-icon">👔</div>
+                        <div class="empty-icon"><i class="fas fa-user-tie"
+                                style="font-size: 3rem; color: var(--text-secondary);"></i></div>
                         <h3 class="empty-title">No Employees Yet</h3>
                         <p class="empty-text">Start by adding your first employee to the system</p>
-                        <button class="btn btn-primary" onclick="openAddModal()">➕ Add First Employee</button>
+                        <button class="btn btn-primary" onclick="openAddModal()">
+                            <i class="fas fa-plus"></i> Add First Employee
+                        </button>
                     </div>
                     {% endif %}
                 </div>
@@ -150,7 +175,13 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script src="{{ url_for('static', filename='js/employees.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            setupSearch('employeeSearch', 'data-table');
+        });
+    </script>
 </body>
 
 </html>

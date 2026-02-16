@@ -47,20 +47,54 @@ async function loadMedicineReport() {
 
 async function loadAllReports() {
     try {
-        const [patientsRes, doctorsRes, medicinesRes] = await Promise.all([
+        const [patientsRes, doctorsRes, medicinesRes, appointmentsRes, billingRes] = await Promise.all([
             fetch('/api/reports/patients'),
             fetch('/api/reports/doctors'),
-            fetch('/api/reports/medicines')
+            fetch('/api/reports/medicines'),
+            fetch('/api/reports/appointments'),
+            fetch('/api/reports/billing')
         ]);
 
         const patients = await patientsRes.json();
         const doctors = await doctorsRes.json();
         const medicines = await medicinesRes.json();
+        const appointments = await appointmentsRes.json();
+        const billing = await billingRes.json();
 
-        if (patients.success && doctors.success && medicines.success) {
-            displayCompleteReport(patients.data, doctors.data, medicines.data);
+        if (patients.success && doctors.success && medicines.success && appointments.success && billing.success) {
+            displayCompleteReport(patients.data, doctors.data, medicines.data, appointments.data, billing.data);
         } else {
             showNotification('Failed to load complete report', 'error');
+        }
+    } catch (error) {
+        showNotification('An error occurred: ' + error.message, 'error');
+    }
+}
+
+async function loadAppointmentReport() {
+    try {
+        const response = await fetch('/api/reports/appointments');
+        const result = await response.json();
+
+        if (result.success) {
+            displayAppointmentReport(result.data);
+        } else {
+            showNotification('Failed to load appointment report', 'error');
+        }
+    } catch (error) {
+        showNotification('An error occurred: ' + error.message, 'error');
+    }
+}
+
+async function loadBillingReport() {
+    try {
+        const response = await fetch('/api/reports/billing');
+        const result = await response.json();
+
+        if (result.success) {
+            displayBillingReport(result.data);
+        } else {
+            showNotification('Failed to load billing report', 'error');
         }
     } catch (error) {
         showNotification('An error occurred: ' + error.message, 'error');
@@ -198,8 +232,96 @@ function displayMedicineReport(medicines) {
     `;
 }
 
-function displayCompleteReport(patients, doctors, medicines) {
+function displayAppointmentReport(appointments) {
     const container = document.getElementById('reportContainer');
+
+    container.innerHTML = `
+        <div class="content-card">
+            <div class="card-header">
+                <h2 class="card-title">Appointment Report</h2>
+                <div style="display: flex; gap: 0.5rem;">
+                    <span class="badge badge-primary">${appointments.length} Total</span>
+                    <span class="badge badge-success">${appointments.filter(a => a.status === 'Completed').length} Completed</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Date</th>
+                                <th>Patient</th>
+                                <th>Doctor</th>
+                                <th>Status</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${appointments.map(a => `
+                                <tr>
+                                    <td><strong>${a.id}</strong></td>
+                                    <td>${a.date}</td>
+                                    <td>${a.patient_name}</td>
+                                    <td>${a.doctor_name}</td>
+                                    <td><span class="badge badge-${a.status === 'Completed' ? 'success' : 'warning'}">${a.status}</span></td>
+                                    <td>${a.notes}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function displayBillingReport(bills) {
+    const container = document.getElementById('reportContainer');
+    const totalAmount = bills.reduce((sum, b) => sum + b.amount, 0);
+
+    container.innerHTML = `
+        <div class="content-card">
+            <div class="card-header">
+                <h2 class="card-title">Billing Report</h2>
+                <div style="display: flex; gap: 0.5rem;">
+                    <span class="badge badge-primary">${bills.length} Invoices</span>
+                    <span class="badge badge-success">Total: $${totalAmount.toFixed(2)}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Date</th>
+                                <th>Patient</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${bills.map(b => `
+                                <tr>
+                                    <td><strong>${b.id}</strong></td>
+                                    <td>${b.date}</td>
+                                    <td>${b.patient_name}</td>
+                                    <td>$${b.amount.toFixed(2)}</td>
+                                    <td><span class="badge badge-${b.status === 'Paid' ? 'success' : 'warning'}">${b.status}</span></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function displayCompleteReport(patients, doctors, medicines, appointments, billing) {
+    const container = document.getElementById('reportContainer');
+    const totalRevenue = billing.reduce((sum, b) => sum + b.amount, 0);
 
     container.innerHTML = `
         <div style="display: grid; gap: 2rem;">
@@ -211,24 +333,24 @@ function displayCompleteReport(patients, doctors, medicines) {
                 <div class="card-body">
                     <div class="stats-grid">
                         <div class="stat-card">
-                            <div class="stat-icon">👥</div>
+                            <div class="stat-icon"><i class="fas fa-users" style="font-size: 2rem; color: var(--primary-color);"></i></div>
                             <div class="stat-label">Total Patients</div>
                             <div class="stat-value">${patients.length}</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon">👨‍⚕️</div>
+                            <div class="stat-icon"><i class="fas fa-user-md" style="font-size: 2rem; color: var(--primary-color);"></i></div>
                             <div class="stat-label">Total Doctors</div>
                             <div class="stat-value">${doctors.length}</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon">💊</div>
-                            <div class="stat-label">Total Medicines</div>
-                            <div class="stat-value">${medicines.length}</div>
+                            <div class="stat-icon"><i class="fas fa-calendar-check" style="font-size: 2rem; color: var(--primary-color);"></i></div>
+                            <div class="stat-label">Appointments</div>
+                            <div class="stat-value">${appointments.length}</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon">📊</div>
-                            <div class="stat-label">Total Records</div>
-                            <div class="stat-value">${patients.length + doctors.length + medicines.length}</div>
+                            <div class="stat-icon"><i class="fas fa-file-invoice-dollar" style="font-size: 2rem; color: var(--primary-color);"></i></div>
+                            <div class="stat-label">Total Revenue</div>
+                            <div class="stat-value">$${totalRevenue.toFixed(2)}</div>
                         </div>
                     </div>
                 </div>
@@ -301,7 +423,7 @@ function displayCompleteReport(patients, doctors, medicines) {
                                     <td><span class="badge ${m.quantity < 10 ? 'badge-danger' : 'badge-warning'}">${m.quantity < 10 ? 'Critical' : 'Low'}</span></td>
                                 </tr>
                             `).join('')}
-                            ${medicines.filter(m => m.quantity < 50).length === 0 ? '<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">✓ All medicines are sufficiently stocked</td></tr>' : ''}
+                            ${medicines.filter(m => m.quantity < 50).length === 0 ? '<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);"><i class="fas fa-check"></i> All medicines are sufficiently stocked</td></tr>' : ''}
                         </tbody>
                     </table>
                 </div>

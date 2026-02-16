@@ -64,6 +64,30 @@ class Medicine(db.Model):
     expiry_date = db.Column(db.Date)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class Appointment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=False)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)
+    appointment_date = db.Column(db.DateTime, nullable=False)
+    status = db.Column(db.String(20), default='Scheduled')  # Scheduled, Completed, Cancelled
+    notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    patient = db.relationship('Patient', backref='appointments')
+    doctor = db.relationship('Doctor', backref='appointments')
+
+class Bill(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=False)
+    appointment_id = db.Column(db.Integer, db.ForeignKey('appointment.id'), nullable=True)
+    amount = db.Column(db.Float, nullable=False)
+    status = db.Column(db.String(20), default='Pending')  # Pending, Paid
+    description = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    patient = db.relationship('Patient', backref='bills')
+    appointment = db.relationship('Appointment', backref='bill')
+
 # Routes
 @app.route('/')
 def index():
@@ -110,7 +134,8 @@ def dashboard():
                          patient_count=patient_count,
                          doctor_count=doctor_count,
                          employee_count=employee_count,
-                         medicine_count=medicine_count)
+                         medicine_count=medicine_count,
+                         appointment_count=Appointment.query.filter_by(status='Scheduled').count())
 
 # Patient Routes
 @app.route('/patients')
@@ -382,6 +407,131 @@ def delete_medicine(id):
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 400
 
+# Appointment Routes
+@app.route('/appointments')
+def appointments():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    appointments = Appointment.query.order_by(Appointment.appointment_date.desc()).all()
+    patients = Patient.query.all()
+    doctors = Doctor.query.all()
+    return render_template('appointments.html', appointments=appointments, patients=patients, doctors=doctors)
+
+@app.route('/appointments/add', methods=['POST'])
+def add_appointment():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    
+    try:
+        appointment = Appointment(
+            patient_id=data['patient_id'],
+            doctor_id=data['doctor_id'],
+            appointment_date=datetime.strptime(data['appointment_date'], '%Y-%m-%dT%H:%M'),
+            notes=data.get('notes', '')
+        )
+        db.session.add(appointment)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Appointment scheduled successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+@app.route('/appointments/update_status/<int:id>', methods=['PUT'])
+def update_appointment_status(id):
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    appointment = Appointment.query.get_or_404(id)
+    data = request.get_json()
+    
+    try:
+        appointment.status = data['status']
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Appointment status updated'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+@app.route('/appointments/delete/<int:id>', methods=['DELETE'])
+def delete_appointment(id):
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    appointment = Appointment.query.get_or_404(id)
+    
+    try:
+        db.session.delete(appointment)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Appointment cancelled successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+# Billing Routes
+@app.route('/billing')
+def billing():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    bills = Bill.query.order_by(Bill.created_at.desc()).all()
+    patients = Patient.query.all()
+    return render_template('billing.html', bills=bills, patients=patients)
+
+@app.route('/billing/add', methods=['POST'])
+def add_bill():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    
+    try:
+        bill = Bill(
+            patient_id=data['patient_id'],
+            amount=data['amount'],
+            description=data['description'],
+            status=data.get('status', 'Pending')
+        )
+        db.session.add(bill)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Bill generated successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+@app.route('/billing/update_status/<int:id>', methods=['PUT'])
+def update_bill_status(id):
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    bill = Bill.query.get_or_404(id)
+    data = request.get_json()
+    
+    try:
+        bill.status = data['status']
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Bill status updated'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+@app.route('/billing/delete/<int:id>', methods=['DELETE'])
+def delete_bill(id):
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    bill = Bill.query.get_or_404(id)
+    
+    try:
+        db.session.delete(bill)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Bill deleted successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 400
+
 # Reports Route
 @app.route('/reports')
 def reports():
@@ -439,6 +589,39 @@ def medicine_report():
     } for m in medicines]
     
     return jsonify({'success': True, 'data': medicine_data})
+
+@app.route('/api/reports/appointments')
+def appointment_report():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    appointments = Appointment.query.all()
+    appointment_data = [{
+        'id': a.id,
+        'patient_name': a.patient.name,
+        'doctor_name': a.doctor.name,
+        'date': a.appointment_date.strftime('%Y-%m-%d %H:%M'),
+        'status': a.status,
+        'notes': a.notes
+    } for a in appointments]
+    
+    return jsonify({'success': True, 'data': appointment_data})
+
+@app.route('/api/reports/billing')
+def billing_report():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    bills = Bill.query.all()
+    bill_data = [{
+        'id': b.id,
+        'patient_name': b.patient.name,
+        'amount': b.amount,
+        'status': b.status,
+        'date': b.created_at.strftime('%Y-%m-%d')
+    } for b in bills]
+    
+    return jsonify({'success': True, 'data': bill_data})
 
 # Create database and admin user if they don't exist
 with app.app_context():
